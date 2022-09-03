@@ -103,6 +103,43 @@ userRouter.patch("/update", (req, res, next) => {
   });
 });
 
+// update multiple user info
+userRouter.patch("/bulk-update", (req, res, next) => {
+  fs.readFile(userData, (err, data) => {
+    if (err) {
+      next(err);
+    } else {
+      const parsedData = JSON.parse(data);
+      const userIds = parsedData.map((user) => user.id);
+      if (Array.isArray(req.body)) {
+        for (user of req.body) {
+          const exist = userIds.includes(user.id);
+          if (exist) {
+            const updateInfo = parsedData.find((u) => u.id === user.id);
+            const userIndex = parsedData.indexOf(updateInfo);
+            parsedData[userIndex] = user;
+            fs.writeFile(userData, JSON.stringify(parsedData), (err) => {
+              if (err) {
+                next(err);
+              } else {
+                res.status(200).send({
+                  message: "Users updated successfully",
+                });
+              }
+            });
+          } else {
+            res.status(406).send({ message: "Invalid Inserted Data ..!" });
+          }
+        }
+      } else {
+        res
+          .status(406)
+          .send({ message: "Provided Data should be an array of object...!" });
+      }
+    }
+  });
+});
+
 // Delete an user
 userRouter.delete("/delete", (req, res, next) => {
   fs.readFile(userData, (err, data) => {
