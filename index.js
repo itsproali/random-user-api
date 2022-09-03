@@ -11,6 +11,12 @@ app.use(express.json());
 // User Route
 app.use("/user", userRouter);
 
+// Error Handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send({ message: err.message || "Something went wrong" });
+});
+
 // Default/Home Route
 app.get("/", (req, res) => {
   res.send("Welcome to Random User Server");

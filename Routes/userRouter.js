@@ -4,10 +4,10 @@ const userRouter = express.Router();
 const userData = "./Data/userData.json";
 
 // Get A random User Data
-userRouter.get("/random", (req, res) => {
+userRouter.get("/random", (req, res, next) => {
   fs.readFile(userData, (err, data) => {
     if (err) {
-      throw err;
+      next(err);
     } else {
       const parsedData = JSON.parse(data);
       const randomNumber = Math.floor(Math.random() * parsedData.length);
@@ -18,11 +18,11 @@ userRouter.get("/random", (req, res) => {
 });
 
 // Get All users
-userRouter.get("/all", (req, res) => {
+userRouter.get("/all", (req, res, next) => {
   const query = req.query.limit;
   fs.readFile(userData, (err, data) => {
     if (err) {
-      throw err;
+      next(err);
     } else {
       const parsedData = JSON.parse(data);
       if (query) {
@@ -36,10 +36,10 @@ userRouter.get("/all", (req, res) => {
 });
 
 // Save a new User
-userRouter.post("/save", (req, res) => {
+userRouter.post("/save", (req, res, next) => {
   fs.readFile(userData, (err, data) => {
     if (err) {
-      throw err;
+      next(err);
     } else {
       const parsedData = JSON.parse(data);
       if (
@@ -54,7 +54,7 @@ userRouter.post("/save", (req, res) => {
         parsedData.push(newUser);
         fs.writeFile(userData, JSON.stringify(parsedData), (err) => {
           if (err) {
-            throw err;
+            next(err);
           } else {
             res
               .status(200)
@@ -71,23 +71,23 @@ userRouter.post("/save", (req, res) => {
 });
 
 // Update a user Data
-userRouter.patch("/update", (req, res) => {
+userRouter.patch("/update", (req, res, next) => {
   fs.readFile(userData, async (err, data) => {
     if (err) {
-      throw err;
+      next(err);
     } else {
       const { name, gender, contact, address, photoURL } = req.body;
-      const insertedId = req.body.id;
+      const insertedId = parseInt(req.body.id);
       const parsedData = JSON.parse(data);
       const userIds = parsedData.map((user) => user.id);
       const exist = await userIds.includes(insertedId);
       if (exist && name && gender && contact && address && photoURL) {
-        const updateInfo = parsedData.find((user) => user.id === req.body.id);
+        const updateInfo = parsedData.find((user) => user.id === insertedId);
         const userIndex = parsedData.indexOf(updateInfo);
         parsedData[userIndex] = req.body;
         fs.writeFile(userData, JSON.stringify(parsedData), (err) => {
           if (err) {
-            throw err;
+            next(err);
           } else {
             res
               .status(200)
@@ -103,6 +103,30 @@ userRouter.patch("/update", (req, res) => {
   });
 });
 
-// 
+// Delete an user
+userRouter.delete("/delete", (req, res, next) => {
+  fs.readFile(userData, (err, data) => {
+    if (err) {
+      next(err);
+    } else {
+      const parsedData = JSON.parse(data);
+      const insertedId = parseInt(req.body.id);
+      const exist = parsedData.find((user) => user.id === insertedId);
+
+      if (exist) {
+        parsedData.splice(insertedId - 1, 1);
+        fs.writeFile(userData, JSON.stringify(parsedData), (err) => {
+          if (err) {
+            next(err);
+          } else {
+            res.status(200).send({ message: "User Deleted Successfully ..!" });
+          }
+        });
+      } else {
+        res.status(406).send({ message: "User Not Found...!" });
+      }
+    }
+  });
+});
 
 module.exports = userRouter;
