@@ -52,7 +52,15 @@ userRouter.post("/save", (req, res) => {
         const newUser = req.body;
         newUser.id = parsedData.length + 1;
         parsedData.push(newUser);
-        res.status(200).send({ message: "New User Added Successfully ..!" });
+        fs.writeFile(userData, JSON.stringify(parsedData), (err) => {
+          if (err) {
+            throw err;
+          } else {
+            res
+              .status(200)
+              .send({ message: "New User Added Successfully ..!" });
+          }
+        });
       } else {
         res
           .status(406)
@@ -61,5 +69,40 @@ userRouter.post("/save", (req, res) => {
     }
   });
 });
+
+// Update a user Data
+userRouter.patch("/update", (req, res) => {
+  fs.readFile(userData, async (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      const { name, gender, contact, address, photoURL } = req.body;
+      const insertedId = req.body.id;
+      const parsedData = JSON.parse(data);
+      const userIds = parsedData.map((user) => user.id);
+      const exist = await userIds.includes(insertedId);
+      if (exist && name && gender && contact && address && photoURL) {
+        const updateInfo = parsedData.find((user) => user.id === req.body.id);
+        const userIndex = parsedData.indexOf(updateInfo);
+        parsedData[userIndex] = req.body;
+        fs.writeFile(userData, JSON.stringify(parsedData), (err) => {
+          if (err) {
+            throw err;
+          } else {
+            res
+              .status(200)
+              .send({ message: "User data Updated Successfully ..!" });
+          }
+        });
+      } else {
+        res
+          .status(406)
+          .send({ message: "Please provide all the information ..!" });
+      }
+    }
+  });
+});
+
+// 
 
 module.exports = userRouter;
