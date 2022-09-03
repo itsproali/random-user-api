@@ -35,4 +35,31 @@ userRouter.get("/all", (req, res) => {
   });
 });
 
+// Save a new User
+userRouter.post("/save", (req, res) => {
+  fs.readFile(userData, (err, data) => {
+    if (err) {
+      throw err;
+    } else {
+      const parsedData = JSON.parse(data);
+      if (
+        req.body.name &&
+        req.body.gender &&
+        req.body.contact &&
+        req.body.address &&
+        req.body.photoURL
+      ) {
+        const newUser = req.body;
+        newUser.id = parsedData.length + 1;
+        parsedData.push(newUser);
+        res.status(200).send({ message: "New User Added Successfully ..!" });
+      } else {
+        res
+          .status(406)
+          .send({ message: "Please provide all the information ..!" });
+      }
+    }
+  });
+});
+
 module.exports = userRouter;
