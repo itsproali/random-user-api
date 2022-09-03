@@ -47,7 +47,7 @@ userRouter.post("/save", (req, res, next) => {
         req.body.gender &&
         req.body.contact &&
         req.body.address &&
-        req.body.photoURL
+        req.body.photoUrl
       ) {
         const newUser = req.body;
         newUser.id = parsedData.length + 1;
@@ -76,12 +76,12 @@ userRouter.patch("/update", (req, res, next) => {
     if (err) {
       next(err);
     } else {
-      const { name, gender, contact, address, photoURL } = req.body;
+      const { name, gender, contact, address, photoUrl } = req.body;
       const insertedId = parseInt(req.body.id);
       const parsedData = JSON.parse(data);
       const userIds = parsedData.map((user) => user.id);
       const exist = await userIds.includes(insertedId);
-      if (exist && name && gender && contact && address && photoURL) {
+      if (exist && name && gender && contact && address && photoUrl) {
         const updateInfo = parsedData.find((user) => user.id === insertedId);
         const userIndex = parsedData.indexOf(updateInfo);
         parsedData[userIndex] = req.body;
